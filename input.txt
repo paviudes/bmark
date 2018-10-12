@@ -1,0 +1,7 @@
+mode simulate
+family 2
+codes 1 5
+distances 1 5
+noise 1
+p 0.005 0.005 0.001
+trials 100000

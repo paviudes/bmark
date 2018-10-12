@@ -1,0 +1,9 @@
+# Ignore all files in obj/
+obj/*.o
+# Ignore all tilings files
+tilings/*.txt
+# Ignore all results and reports
+results/*.txt
+reports/*.tex
+reports/*.pdf
+
