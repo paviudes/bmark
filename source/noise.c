@@ -114,23 +114,13 @@ void InitializeRBIMNoise(struct noise *pn, struct tiling *pG){
 
 double Binomial(int n, int k, double p){
 	// Compute the term nCk p^k (1-p)^(n-k).
-	const double atol = 10E-20;
-	double result = 1;
-	if (k > 0){
-		int i, delta = (int) floor((double) (n-k)/(double) k);
-		for (i = 0; i < k; i ++){
-			if (result < atol){
-				result = 0;
-				break;
-			}
-			else{
-				result *= ((p * pow(1 - p, delta)) * (double) ((n-i)/ (double) (k-i)));
-			}
-		}
-		result *= pow(1 - p, (float) (n % k));
-	}
-	else
-		result = pow(1 - p, n);
+	// We will assume that k < n-k.
+	// Note that the Binomial coefficient can be expressed as: (1-p)^n * prod_(i=0)^(n-k) [ (n-i)/(k-i) q ] , where q = p/(1-p).
+	double q = p/(1-p), result = 1;
+	int i;
+	for (i = 0; i < k; i ++)
+		result = result * (n - i)/((double) (k - i)) * q;
+	result = result * pow(1 - p, (double) n);
 	return result;
 }
 
@@ -153,19 +143,21 @@ double GaussianPDF(double mean, double variance, int point){
 	return value;
 }
 
-void Gaussian(double mean, double variance, int nelems, int min, int max, double *distribution){
+void Gaussian(double mean, double variance, int nelems, double *distribution){
 	// Construct a gaussian distribution with given mean standard deviation.
-	const double atol = 10E-20;
+	const double atol = 10E-40;
 	double normalization = 0;
 	int i;
-	for (i = min; i < max; i ++){
-		distribution[i - min] = GaussianPDF(mean, variance, i);
-		if (distribution[i - min] < atol)
-			distribution[i - min] = 0;
-		normalization += distribution[i - min];
+	for (i = 0; i < nelems; i ++){
+		distribution[i] = GaussianPDF(mean, variance, i);
+		if (distribution[i] < atol)
+			distribution[i] = 0;
+		normalization += distribution[i];
 	}
-	for (i = min; i < max; i ++)
-		distribution[i - min] = distribution[i - min]/normalization;
+	for (i = 0; i < nelems; i ++)
+		distribution[i] = distribution[i]/normalization;
+	// printf("Gaussian distribution\n");
+	// PrintDoubleArray(distribution, nelems);
 }
 
 void Poisson(double mean, double *cumulative, int cutoff){
@@ -190,7 +182,7 @@ void Poisson(double mean, double *cumulative, int cutoff){
 
 int UpdateNoise(struct noise *pn, struct mcresult *pmcr, char *tileName, int ne){
 	// Update the parameters of a noise model and assign new filenames for the results of the various montecarlo runs.
-	const double atol = 10E-20;
+	// const double atol = 10E-40;
 	int skip = 0;
 	pn->current ++;
 	int cutoff = (int) Min(3 * (pn->params)[pn->current][1], (double) ne);
@@ -215,8 +207,12 @@ int UpdateNoise(struct noise *pn, struct mcresult *pmcr, char *tileName, int ne)
 
 			// True weight distribution is given by the Binomial distribution
 			int i;
-			for (i = 0; i < ne; i ++)
-				(pn->truedist)[i] = Binomial(ne, i, (pn->params)[pn->current][0]);
+			for (i = 0; i < ne; i ++){
+				if (i < ne/2)
+					(pn->truedist)[i] = Binomial(ne, i, (pn->params)[pn->current][0]);
+				else
+					(pn->truedist)[i] = 0;
+			}
 
 			// printf("True distribution for\n");
 			// PrintNoise(pn);
@@ -224,8 +220,8 @@ int UpdateNoise(struct noise *pn, struct mcresult *pmcr, char *tileName, int ne)
 
 			// printf("n p = %d x %g = %g and distance = %g\n", ne, (pn->params)[pn->current][0], (pn->params)[pn->current][0] * (double) ne, (double) pn->dist);
 			if ((pn->params)[pn->current][0] * (double) ne < (double) (pn->dist + 1)){
-				// printf("Gaussian with mean = %g, variance = %g\n", (double) pn->dist, ceil(ne * (pn->params)[pn->current][0] * (1 - (pn->params)[pn->current][0])));
-				Gaussian((double) (pn->dist + 1), ceil(ne * (pn->params)[pn->current][0] * (1 - (pn->params)[pn->current][0])), ne, 0, ne, pn->impdist);
+				// printf("Gaussian with mean = %g, variance = %g\n", (double) (pn->dist + 1), ceil(ne * (pn->params)[pn->current][0] * (1 - (pn->params)[pn->current][0])));
+				Gaussian((double) (pn->dist + 1), ceil(ne * (pn->params)[pn->current][0] * (1 - (pn->params)[pn->current][0])), ne, pn->impdist);
 			}
 			else{
 				// printf("There is no need for importance sampling.\n");
@@ -235,9 +231,16 @@ int UpdateNoise(struct noise *pn, struct mcresult *pmcr, char *tileName, int ne)
 				}
 			}
 
+			// printf("Importance distribution for\n");
+			// PrintNoise(pn);
+			// PrintDoubleArray(pn->impdist, ne);
+
+			// printf("atol = %g\n", atol);
+
 			(pn->impcumul)[0] = (pn->impdist)[0];
 			for (i = 0; i < ne; i ++){
-				if ((pn->truedist)[i] < atol){
+				// printf("%d %g %g %g\n", i, (pn->truedist)[i], (pn->impdist)[i], atol);
+				if ((pn->truedist)[i] <= 0){
 					(pn->impdist)[i] = 0;
 					(pn->bias)[i] = 0;
 				}
