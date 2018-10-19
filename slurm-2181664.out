@@ -1,0 +1,25 @@
+p = 0.01.
+[92m.
+[0m[92m......[0m
+ 	X,Z		X		Z
+Fails 	206312 		109446	 	108953
+Trials  1000000 		1000000		1000000
+Rates 	1.119e-16 	2.710e-17	1.041e-16
+Bars 	0e+00		0.00e+00	0.00e+00
+Pass 	0 		0 		0
+[92m*********[0m
+[92mReading inputs from input.txt.[0m
+[92mInput done.[0m
+[92m******* SUMMARY *********[0m
+[92mFamily: 3[0m
+[92mCode lengths: [0m[92m11 [0m
+[92mNoise type: uncorr
+[0m[92mp : from 0.01 to 0.01 in steps of 0.001[0m
+[2m(In all, there are 1 noise rates.)[0m
+[92mNumber of decoding trials: 1000000[0m
+[92m**************************[0m
+[93mEstimating performance of 6_11_selfdual with noise rate[0m
+[93m	p -- from 0.01 to 0.01 in steps of 0.001.[0m
+[92m _/ Done 330 qubits in 43.1238 seconds.
+	Output in 16_9_2018_15_59_48_ju_0.164328.[0m
+[92m_/ All simulations are done.[0m
