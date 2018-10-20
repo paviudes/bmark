@@ -1,3 +1,5 @@
+# Executable file
+benchmarking
 # Ignore all files in obj/
 obj/*.o
 # Ignore all tilings files
