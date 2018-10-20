@@ -30,6 +30,10 @@ void ResetResults(struct mcresult *pmcr){
 	FillDoubleArrayWithConstants(pmcr->bars, 3, 0);
 	FillLongArrayWithConstants(pmcr->fails, 3, 0);
 	FillIntArrayWithConstants(pmcr->pass, 3, 0);
+	int i;
+	(pmcr->running)[0][1] = 1;
+	for (i = 1; i <= (int) (pmcr->running)[0][0]; i ++)
+		FillDoubleArrayWithConstants((pmcr->running)[i] + 1, 3, 0);
 }
 
 void FreeResult(struct mcresult *pmcr){

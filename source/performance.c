@@ -291,10 +291,15 @@ void WriteResult(struct simulation *pSim, struct noise *pn, struct mcresult *pmc
 	// Write the running averages data
 	char *runavgFile = malloc(sizeof(char) * 100);
 	sprintf(runavgFile, "results/runavg_%s_%s_%s.txt", pG->type, repr->mname, pSim->timestamp);
-	FILE *runavgfp = fopen(runavgFile, "w");
+	FILE *runavgfp = fopen(runavgFile, "a");
+	fprintf(runavgfp, "%s = %g", (repr->varnames)[0], (pn->params)[pn->current][0]);
+	for (pi = 1; pi < (pn->params)[0][1]; pi ++)
+		fprintf(runavgfp, ", %s = %g", (repr->varnames)[pi], (pn->params)[pn->current][pi]);
+	fprintf(runavgfp, ".\n");
 	fprintf(runavgfp, "#N f_XZ f_X f_Z\n");
 	for (pi = 1; pi <= (int) (pmcr->running)[0][0]; pi ++)
 		fprintf(runavgfp, "%ld %.4e %.4e %.4e\n", (long) (pmcr->running)[pi][0], (pmcr->running)[pi][1], (pmcr->running)[pi][2], (pmcr->running)[pi][3]);
+	fprintf(runavgfp, "\n\n");
 	fclose(runavgfp);
 	free(runavgFile);
 

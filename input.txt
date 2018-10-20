@@ -1,15 +1,7 @@
 mode simulate
 family 3
-<<<<<<< HEAD
 codes 1 5
 noise 1
-p 0.03 0.03 0.001
+p 0.01 0.04 0.01
 trials 100000
 runavg 8 10 100 500 1000 5000 10000 50000 100000
-=======
-codes 5 5 7 11 13 17
-distances 5 15 28 33 45 153
-noise 1
-p 0.01 0.05 0.01
-trials 1000000
->>>>>>> f4827dedc7208deb9ca61ea99980e2e7643fcdf0
