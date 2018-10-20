@@ -36,12 +36,25 @@ struct mcresult
 	*/
 	double *bars;
 
+	/*
+		running (M x 1) double -- checkpoints at which the estimated running average by Monte Carlo needs to be stored.
+			running[0] -- (2 x 1) array of double
+				running[0][0] = number of check points.
+				running[0][1] = index of the next check point at which the running average needs to be registered.
+			running[i + 1] -- (4 x 1) array of double
+				running[i + 1][0] -- the Monte Carlo trial at which the i-th running average needs to be stored.
+				running[i + 1][1] -- the running average of X or Z errors, at the i-th checkpoint.
+				running[i + 1][2] -- the running average of X errors, at the i-th checkpoint.
+				running[i + 1][3] -- the running average of Z errors, at the i-th checkpoint.
+	*/
+	double **running;
+
 	double runtime; // time taken to estimate the failure rate
 	int *pass; // flag to indicate if the estimation of the failure rates are reliable.
 };
 
 // Initialize the parameters of the result structure
-extern void InitializeResult(struct mcresult *pmcr);
+extern void InitializeResult(struct mcresult *pmcr, long *breakpoints);
 
 /*
 	Reset some parameters of the result structure which are to be recorded newly for the next Montecarlo simulation.
@@ -54,5 +67,14 @@ extern void FreeResult(struct mcresult *pmcr);
 
 // Print all the values in the result of the current simulation
 extern void PrintResult(struct mcresult *pmcr);
+
+
+/*
+	Compute the running estimated average at regular intervals in the Monte Carlo simulation.
+	The intervals (called breakpoints) are given in the first column of pmcr->running.
+	The next three columns contain the X & Z, X and Z failure rates.
+	The index of the next breakpoint for registering the running averge is given in pmcr->nextbp
+*/
+extern void UpdateRunningAverage(long stat, struct mcresult *pmcr);
 
 #endif /* MCRESULT_H */

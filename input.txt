@@ -1,7 +1,7 @@
 mode simulate
 family 3
-codes 1 17
-distances 1 153
+codes 1 5
 noise 1
-p 0.01 0.01 0.001
+p 0.03 0.03 0.001
 trials 100000
+runavg 8 10 100 500 1000 5000 10000 50000 100000

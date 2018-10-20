@@ -70,6 +70,7 @@ void GenerateErasure(struct tiling **pGs, struct simulation *pSim, struct noise 
 void DecodingTest(struct tiling **pGs, struct simulation* pSim, struct mcresult *pmcr, int dist, double currentbias){
 	// Perform one decoding test by generating an erasure and determining the type of logical operator covered by this erasure
 	int ct, logType;
+	/*
 	// Increment the number of trials, only for the type of errors for which the numerics are performed
 	for(ct = 0; ct < 3; ct ++)
 		if((pSim->type == 0) || (pSim->type == ct))
@@ -102,10 +103,27 @@ void DecodingTest(struct tiling **pGs, struct simulation* pSim, struct mcresult 
 		}
 		else;
 	}
-	if (dist == -1)
-		for(ct = 0; ct < 3; ct ++)
-			if((pSim->type) == 0 || (pSim->type) == ct)
+	*/
+
+	// Determine the type of logical operator supported by the erasure pattern
+	logType = LogicalType(pGs, pSim);
+	// Update the count of failures, failure rates and total trials accordingly.
+	for(ct = 0; ct < 3; ct ++){
+		if(((pSim->type) == 0) || ((pSim->type) == ct)){
+			// Increment the number of trials, only for the type of errors for which the numerics are performed
+			(pmcr->trials)[ct] ++;
+			if (logType > 0){
+				if ((ct == 0) || (logType == 1) || (logType == (ct + 1))){
+					(pmcr->fails)[ct] ++;
+					if (dist != -1)
+						(pmcr->rates)[ct] += currentbias/(double) pSim->stats;
+				}
+			}
+			if (dist == -1)
 				(pmcr->rates)[ct] = (double) (pmcr->fails)[ct]/(double) (pmcr->trials)[ct];
+		}
+	}
+	// fprintf(stderr, "(pmcr->fails)[0] = %ld, (pmcr->rates)[0] = %.4e\n", (pmcr->fails)[0], (pmcr->rates)[0]);
 }
 
 
@@ -180,7 +198,6 @@ int MCStop(struct simulation* pSim, struct mcresult *pmcr, long running){
 	return 0;
 }
 
-
 void MCEstimate(struct tiling **pGs, struct simulation *pSim, struct noise *pn, struct mcresult *pmcr){
 	// Run decoding trials to estimate the decoding failure probability
 	long si;
@@ -203,6 +220,10 @@ void MCEstimate(struct tiling **pGs, struct simulation *pSim, struct noise *pn, 
 			}
 		}
 		DecodingTest(pGs, pSim, pmcr, pn->dist, pn->currentbias);
+
+		// Get the running average of failure rates. This is just to see how the estimate average converges to the true average.
+		UpdateRunningAverage(si, pmcr);
+
 		if (pn->dist == -1)
 			if(MCStop(pSim, pmcr, (si + 1)) == 1)
 				break;
@@ -226,7 +247,6 @@ void MCEstimate(struct tiling **pGs, struct simulation *pSim, struct noise *pn, 
 	PrintResult(pmcr);
 	fprintf(stderr, "\033[92m*********\033[0m\n");
 }
-
 
 void WriteResult(struct simulation *pSim, struct noise *pn, struct mcresult *pmcr, struct tiling *pG){
 	// Write results of simulation with a noise rate into a file
@@ -267,6 +287,16 @@ void WriteResult(struct simulation *pSim, struct noise *pn, struct mcresult *pmc
 	fclose(selectRes);
 	free(datafile);
 	free(selectedDataFile);
+
+	// Write the running averages data
+	char *runavgFile = malloc(sizeof(char) * 100);
+	sprintf(runavgFile, "results/runavg_%s_%s_%s.txt", pG->type, repr->mname, pSim->timestamp);
+	FILE *runavgfp = fopen(runavgFile, "w");
+	fprintf(runavgfp, "#N f_XZ f_X f_Z\n");
+	for (pi = 1; pi <= (int) (pmcr->running)[0][0]; pi ++)
+		fprintf(runavgfp, "%ld %.4e %.4e %.4e\n", (long) (pmcr->running)[pi][0], (pmcr->running)[pi][1], (pmcr->running)[pi][2], (pmcr->running)[pi][3]);
+	fclose(runavgfp);
+	free(runavgFile);
 
 	pSim->runtime += pmcr->runtime;
 	if (pn->current == (pn->params)[0][0]){
@@ -309,7 +339,10 @@ void DecodingFailureRates(struct tiling **pGs, struct simulation *pSim, struct n
 	}
 }
 
-
+/* There are several forms of the Performance function.
+	1. Performance: The number of Monte Carlo runs is an integer.
+	2. PerformanceRunning: The number of Monte Carlo runs is speacified as an array. In this case, the running average is computed at at every array element.
+*/
 char* Performance(struct tiling G, int dist, int model, double **noiseParams, long stats){
 	// Analyze the performance of a code (defined with a tiling) with montecarlo simulation of specific number of decoding trails
 	int ti, nrates;
@@ -323,12 +356,50 @@ char* Performance(struct tiling G, int dist, int model, double **noiseParams, lo
 	// printf("dist = %d\n", dist);
 	
 	struct mcresult *pmcr = malloc(sizeof(struct mcresult));
-	InitializeResult(pmcr);
+	long *breakpoints = malloc(sizeof(long) * 2);
+	breakpoints[0] = 1;
+	breakpoints[1] = stats;
+	InitializeResult(pmcr, breakpoints);
 	struct noise *pn = malloc(sizeof(struct noise));
 	InitializeNoise(pn, pGs[0], dist, model, noiseParams);
 	nrates = (int) ((pn->params)[0][0]);
 	struct simulation *pSim = malloc(sizeof(struct simulation));
 	InitializeSimulation(pSim, pGs, nrates, stats);
+
+	DecodingFailureRates(pGs, pSim, pn, pmcr);
+	char *summary = malloc(sizeof(char) * 500);
+	sprintf(summary, "%s", pSim->timestamp);
+	
+	// Free memory
+	for (ti = 1; ti < 3; ti ++)
+		FreeTiling(pGs[ti]);
+	free(pGs);
+	FreeSimulation(pSim, nrates);
+	FreeNoise(pn);
+	FreeResult(pmcr);
+	free(breakpoints);
+	return summary;
+}
+
+char* PerformanceRunning(struct tiling G, int dist, int model, double **noiseParams, long *breakpoints){
+	// Analyze the performance of a code (defined with a tiling) with montecarlo simulation of specific number of decoding trails
+	int ti, nrates;
+	struct tiling **pGs = malloc(sizeof(struct tiling*) * 3);
+	for (ti = 0; ti < 3; ti ++)
+		pGs[ti] = malloc(sizeof(struct tiling));
+	pGs[0][0] = G;
+	pGs[1][0] = DualTiling(pGs[0][0]);
+	pGs[2][0] = DualTiling(pGs[1][0]);
+
+	// printf("dist = %d\n", dist);
+	
+	struct mcresult *pmcr = malloc(sizeof(struct mcresult));
+	InitializeResult(pmcr, breakpoints);
+	struct noise *pn = malloc(sizeof(struct noise));
+	InitializeNoise(pn, pGs[0], dist, model, noiseParams);
+	nrates = (int) ((pn->params)[0][0]);
+	struct simulation *pSim = malloc(sizeof(struct simulation));
+	InitializeSimulation(pSim, pGs, nrates, breakpoints[breakpoints[0]]);
 
 	DecodingFailureRates(pGs, pSim, pn, pmcr);
 	char *summary = malloc(sizeof(char) * 500);

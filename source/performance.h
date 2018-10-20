@@ -32,4 +32,7 @@ extern char* Performance(struct tiling G, int dist, int model, double **noisePar
 						runtimes file = runtimes_<timestamp>.txt
 */
 
+// Analyze the performance of a code (defined with a tiling) with montecarlo simulation of specific number of decoding trails
+extern char* PerformanceRunning(struct tiling G, int dist, int model, double **noiseParams, long *breakpoints);
+
 #endif	/* PERFORMANCE_H */

@@ -47,8 +47,9 @@ void Remote(char *inputfile){
 	sprintf(queue, "qwork");
 	sprintf(tstamp, "empty_time_stamp");
 
-	int i, sofar, read, family, ncodes, **lengths = NULL, model, wall = 10;
+	int i, sofar, read, family, ncodes, **lengths = NULL, model, wall = 10, nbreaks = 0;
 	long stats;
+	long *breakpoints = NULL;
 	double **params = NULL;
 	struct representation *repr = NULL;
 	struct axes *ax = NULL;
@@ -102,6 +103,16 @@ void Remote(char *inputfile){
 		if (strncmp(line, "implicit", 8) == 0){
 			sscanf(line, "%s %s", option, pname);
 			params[0][1] = (double) IndexOf(pname, repr->varnames, repr->nvars);
+		}
+
+		if (strncmp(line, "runavg", 6) == 0){
+			sscanf(line, "%s %d%n", option, &nbreaks, &read);
+			breakpoints = malloc(sizeof(long) * (nbreaks + 1));
+			breakpoints[0] = (long) nbreaks;
+			for (i = 1; i <= nbreaks; i ++){
+				sofar += read;
+				sscanf(line + sofar, "%ld%n", &breakpoints[i], &read);
+			}
 		}
 
 		if (strncmp(line, "trials", 6) == 0)
@@ -165,7 +176,13 @@ void Remote(char *inputfile){
 			printf("\033[93mEstimating performance of %s with noise rate\033[0m\n", tilingFile);
 			for (p = 1; p <= repr->nvars ; p ++)
 				printf("\033[93m\t%s -- from %g to %g in steps of %g.\033[0m\n", (repr->varnames)[p - 1], params[p][0], params[p][1], params[p][2]);
-			resfile = Performance(T, lengths[i][2], model, params, stats);
+			
+			// if breakpoints are specified, run PerformanceRunning.
+			if (nbreaks == 0)
+				resfile = Performance(T, lengths[i][2], model, params, stats);
+			else
+				resfile = PerformanceRunning(T, lengths[i][2], model, params, breakpoints);
+
 			endTime = clock();
 			runtime = (double)(endTime - startTime)/CLOCKS_PER_SEC;
 			printf("\033[92m _/ Done %d qubits in %g seconds.\n\tOutput in %s.\033[0m\n", lengths[i][1], runtime, resfile);
@@ -212,6 +229,8 @@ void Remote(char *inputfile){
 		Submit(inputfile, family, lengths, model, params, stats, jobname, queue, wall);
 
 	// Free memory
+	if (breakpoints != NULL)
+		free(breakpoints);
 	if (lengths != NULL)
 		FreeIntArray(lengths, lengths[0][0] + 1);
 	if (params != NULL)
