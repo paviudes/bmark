@@ -6,4 +6,5 @@ tilings/*.txt
 results/*.txt
 reports/*.tex
 reports/*.pdf
-
+# Ignore SLURM generated files
+slurm-*.out
