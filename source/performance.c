@@ -395,9 +395,6 @@ char* PerformanceRunning(struct tiling G, int dist, int model, double **noisePar
 	pGs[0][0] = G;
 	pGs[1][0] = DualTiling(pGs[0][0]);
 	pGs[2][0] = DualTiling(pGs[1][0]);
-
-	// printf("dist = %d\n", dist);
-	
 	struct mcresult *pmcr = malloc(sizeof(struct mcresult));
 	InitializeResult(pmcr, breakpoints);
 	struct noise *pn = malloc(sizeof(struct noise));

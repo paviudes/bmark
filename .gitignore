@@ -10,3 +10,7 @@ reports/*.tex
 reports/*.pdf
 # Ignore SLURM generated files
 slurm-*.out
+# Ignore the input and launch files
+input.txt
+launch.sh
+instances.sh

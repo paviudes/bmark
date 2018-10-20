@@ -38,7 +38,7 @@ int IndexOf(char *str, char **set, int size){
 
 void Remote(char *inputfile){
 	// Analyze performance for a family of codes
-	const int LINE_WIDTH = 100;
+	const int LINE_WIDTH = 1000;
 	FILE *infp = fopen(inputfile, "r");
 	char line[LINE_WIDTH], *mode = malloc(sizeof(char) * 100), *option = malloc(sizeof(char) * 100), *queue = malloc(sizeof(char) * 100), *pname = malloc(sizeof(char) * 100), *jobname = malloc(sizeof(char) * 100), *tstamp = malloc(sizeof(char) * 100);
 	// default values
@@ -109,9 +109,10 @@ void Remote(char *inputfile){
 			sscanf(line, "%s %d%n", option, &nbreaks, &read);
 			breakpoints = malloc(sizeof(long) * (nbreaks + 1));
 			breakpoints[0] = (long) nbreaks;
+			int i;
 			for (i = 1; i <= nbreaks; i ++){
 				sofar += read;
-				sscanf(line + sofar, "%ld%n", &breakpoints[i], &read);
+				sscanf(line + sofar, "%ld%n", &(breakpoints[i]), &read);
 			}
 		}
 

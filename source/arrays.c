@@ -183,43 +183,52 @@ int IntervalSize(double *range){
 
 void FillIntArrayWithConstants(int* arr, int arrSize, int constant){
 	// Fill an integer array with constants
-	int ai = 0;
-	for(ai = 0; ai < arrSize; ai ++){
-		arr[ai] = constant;
+	int i = 0;
+	for(i = 0; i < arrSize; i ++){
+		arr[i] = constant;
 	}
 }
 
 void FillLongArrayWithConstants(long* arr, int arrSize, long constant){
 	// Fill an integer array with constants
-	int ai = 0;
-	for(ai = 0; ai < arrSize; ai ++){
-		arr[ai] = constant;
+	int i = 0;
+	for(i = 0; i < arrSize; i ++){
+		arr[i] = constant;
 	}
 }
 
 void FillFloatArrayWithConstants(float* arr, int arrSize, float constant){
 	// Fill an integer array with constants
-	int ai = 0;
-	for(ai = 0; ai < arrSize; ai ++){
-		arr[ai] = constant;
+	int i = 0;
+	for(i = 0; i < arrSize; i ++){
+		arr[i] = constant;
 	}
 }
 
 void FillDoubleArrayWithConstants(double* arr, int arrSize, double constant){
 	// Fill an integer array with constants
-	int ai = 0;
-	for(ai = 0; ai < arrSize; ai ++){
-		arr[ai] = constant;
+	int i = 0;
+	for(i = 0; i < arrSize; i ++){
+		arr[i] = constant;
 	}
 }
 
 void PrintIntArray(int* arr, int arrSize){
-	// Print the contents of an inteeger array
-	int ai;
-	for(ai = 0; ai < arrSize; ai ++)
-		printf(" %d", arr[ai]);
+	// Print the contents of an integer array
+	int i;
+	for(i = 0; i < arrSize; i ++)
+		printf(" %d", arr[i]);
 	printf(".\n");
 }
+
+void PrintLongArray(long* arr, int arrSize){
+	// Print the contents of an long array
+	int i;
+	for(i = 0; i < arrSize; i ++)
+		printf(" %ld", arr[i]);
+	printf(".\n");
+}
+
 
 void PrintDoubleArray(double* arr, int size){
 	// Print the contents of an double array

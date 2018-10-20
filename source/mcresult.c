@@ -15,7 +15,7 @@ void InitializeResult(struct mcresult *pmcr, long *breakpoints){
 	pmcr->running[0][0] = (double) breakpoints[0];
 	pmcr->running[0][1] = 1;
 	int i, j;
-	for (i = 1; i <= (int) breakpoints[0]; i ++){
+	for (i = 1; i <= breakpoints[0]; i ++){
 		(pmcr->running)[i] = malloc(sizeof(double) * 4);
 		(pmcr->running)[i][0] = (double) breakpoints[i];
 		for (j = 1; j <= 3; j ++)

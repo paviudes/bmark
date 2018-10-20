@@ -54,8 +54,11 @@ extern void FillDoubleArrayWithConstants(double* arr, int arrSize, double consta
 // Print the contents of an double array
 extern void PrintDoubleArray(double* arr, int size);
 
-// Print the contents of an inteeger array
+// Print the contents of an integer array
 extern void PrintIntArray(int* arr, int arrSize);
+
+// Print the contents of an long array
+extern void PrintLongArray(long* arr, int arrSize);
 
 // Compute the Hamming weight of the bit string that is used to represent a given decimal number
 // http://stackoverflow.com/questions/22081738/how-does-this-algorithm-to-count-the-number-of-set-bits-in-a-32-bit-integer-work
