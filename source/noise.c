@@ -221,7 +221,7 @@ int UpdateNoise(struct noise *pn, struct mcresult *pmcr, char *tileName, int ne)
 			// printf("n p = %d x %g = %g and distance = %g\n", ne, (pn->params)[pn->current][0], (pn->params)[pn->current][0] * (double) ne, (double) pn->dist);
 			if ((pn->params)[pn->current][0] * (double) ne < (double) (pn->dist + 1)){
 				// printf("Gaussian with mean = %g, variance = %g\n", (double) (pn->dist + 1), ceil(ne * (pn->params)[pn->current][0] * (1 - (pn->params)[pn->current][0])));
-				Gaussian((double) (pn->dist + 1), ceil(ne * (pn->params)[pn->current][0] * (1 - (pn->params)[pn->current][0])), ne, pn->impdist);
+				Gaussian((double) pn->dist, ceil(ne * (pn->params)[pn->current][0]), ne, pn->impdist);
 			}
 			else{
 				// printf("There is no need for importance sampling.\n");
