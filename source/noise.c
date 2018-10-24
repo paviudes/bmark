@@ -137,6 +137,18 @@ double BiasedBinomial(int n, int dist, double p, double *distribution){
 	return normalization;
 }
 
+void PDFRoot(double *dist, double *rootdist, int elems, double root){
+	// Compute a given root of each element of a probability distribution and then normalize the results to form a new probability distribution.
+	int i;
+	double norm = 0;
+	for (i = 0; i < elems; i ++){
+		rootdist[i] = pow(dist[i], root);
+		norm = norm + rootdist[i];
+	}
+	for (i = 0; i < elems; i ++)
+		rootdist[i] = rootdist[i]/norm;
+}
+
 double GaussianPDF(double mean, double variance, int point){
 	// Compute the value of the PDF of the normal distribution with given mean and variance at a given point.
 	double pi = 3.1415, value = (1/sqrt(2 * variance * pi) * exp(-pow(point - mean, 2)/(2 * variance)));
@@ -221,7 +233,9 @@ int UpdateNoise(struct noise *pn, struct mcresult *pmcr, char *tileName, int ne)
 			// printf("n p = %d x %g = %g and distance = %g\n", ne, (pn->params)[pn->current][0], (pn->params)[pn->current][0] * (double) ne, (double) pn->dist);
 			if ((pn->params)[pn->current][0] * (double) ne < (double) (pn->dist + 1)){
 				// printf("Gaussian with mean = %g, variance = %g\n", (double) (pn->dist + 1), ceil(ne * (pn->params)[pn->current][0] * (1 - (pn->params)[pn->current][0])));
-				Gaussian((double) pn->dist, ceil(ne * (pn->params)[pn->current][0]), ne, pn->impdist);
+				// Gaussian((double) pn->dist, ceil(ne * (pn->params)[pn->current][0]), ne, pn->impdist);
+				// The importance distribution is the square root of the true distribution
+				PDFRoot(pn->truedist, pn->impdist, ne, 0.5);
 			}
 			else{
 				// printf("There is no need for importance sampling.\n");
