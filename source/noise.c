@@ -235,7 +235,7 @@ int UpdateNoise(struct noise *pn, struct mcresult *pmcr, char *tileName, int ne)
 				// printf("Gaussian with mean = %g, variance = %g\n", (double) (pn->dist + 1), ceil(ne * (pn->params)[pn->current][0] * (1 - (pn->params)[pn->current][0])));
 				// Gaussian((double) pn->dist, ceil(ne * (pn->params)[pn->current][0]), ne, pn->impdist);
 				// The importance distribution is the square root of the true distribution
-				PDFRoot(pn->truedist, pn->impdist, ne, 0.5);
+				PDFRoot(pn->truedist, pn->impdist, ne, 0.25);
 			}
 			else{
 				// printf("There is no need for importance sampling.\n");
